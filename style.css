@@ -63,7 +63,7 @@ a, a:visited, a:hover, a:active, a:focus
 	position: absolute;
 	left: 50%;
 	margin-left: -292px;
-	top: 30px;
+	top: 28px;
 	color: white;
 	font-size: 18px;
 }
@@ -75,8 +75,8 @@ a, a:visited, a:hover, a:active, a:focus
 	margin-left: 140px;
 	top: 20px;
 	width: 180px;
-	padding-top: 9px;
-	padding-bottom: 9px;
+	padding-top: 7px;
+	padding-bottom: 7px;
 	background: #eb2a1c;
 	border-radius: 18px;
 	text-align: center;
