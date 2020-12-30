@@ -412,7 +412,6 @@ leaderboard.statCols = leaderboard.querySelectorAll(".stat-col");
 leaderboard.statCols.forEach(statCol => {
   statCol.stats = statCol.querySelectorAll(".leaderboard__stat");
 });
-console.log(leaderboard.statCols);
 
 function updateLeaderboard() {
   results.forEach(function(result, i) {
