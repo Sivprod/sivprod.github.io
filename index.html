@@ -1,56 +1,134 @@
 <!doctype html>
 
 <html lang="ru">
-<head>
-  <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
 
-  <title>layout</title>
+    <title>Бесконченый сапёр</title>
+    <meta name="description" content="Just minesweeper">
+    <meta name="author" content="Sivprod">
 
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css?family=Noto+Serif" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-</head>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="icons.css">
+  </head>
 
-<body>
-	<div class="hat">
-		<div class="utp">
-			<div class="decorations"></div>
+  <body>
+    <header>
+      <div class="header__elem">
+        <button class="btn btn_icon icon-restart"></button>
+      </div>
+      <div class="header__elem status">
+        <div class="stat-group">
+          <span class="caption">клетки</span>
+          <span id="cell-counter"></span>
+        </div>
+        <div class="stat-group">
+          <span class="caption">время</span>
+          <span id="time-counter"></span>
+        </div>
+      </div>
+      <div class="header__elem">
+        <button href="#leaderboard" class="btn btn_icon icon-leaderboard modal-trigger"></button>
+      </div>
+    </header>
 
-			<div class="kazka">
-				<svg viewBox="0 0 100 100">
-				<path d="M0.1,19.5c95.2-11.3,202.7-19,320.5-19c117.4,0,224.6,7.7,319.5,19" id="circle-1" />
-				<text id="kazka"><textPath xlink:href="#circle-1">
-				Рiздвяна казка у Львовi
-				</textPath></text>
-				</svg>
-			</div>
+    <div class="welcome">
+      <button class="btn btn_filled btn_l start hide">Начать игру</button>
+    </div>
 
-			<div class="razom">
-				<svg viewBox="0 0 100 100">
-				<path d="M0,3.6c47.6-4.1,101.3-3,160.3-3c58.7,0,112.3-1,159.8,3" id="circle-2" />
-				<text id="razom"><textPath xlink:href="#circle-2">
-				Відпочиваємо та святкуємо разом
-				</textPath></text>
-				</svg>
-			</div>
+    <div id="end-screen" class="end-screen modal hide">
+      <div class="card">
+        <div class="card__header">
+          <span>Игра окончена</span>
+          <button class="btn btn_icon icon-close modal__close"></button>
+        </div>
+        <div class="card__body">
+          <div class="stat-row">
+            <div class="stat-group">
+              <span class="caption">клетки</span>
+              <span id="total-cells"></span>
+            </div>
+            <div class="stat-group">
+              <span class="caption">время</span>
+              <span id="total-time"></span>
+            </div>
+            <div class="stat-group">
+              <span class="caption">счет</span>
+              <span id="pts"></span>
+            </div>
+          </div>
+          <div class="endscreen__place"></div>
+        </div>
+        <div class="card__footer">
+          <button class="btn btn_footer btn_filled end-screen__restart">Еще раз</button>
+          <button href="#leaderboard" class="btn btn_footer btn_bordered modal-trigger">Рекорды</button>
+        </div>
+      </div>
+    </div>
 
+    <div id="leaderboard" class="leaderboard modal hide">
+      <div class="card">
+        <div class="card__header">
+          <span>Рекорды</span>
+          <button class="btn btn_icon icon-close modal__close"></button>
+        </div>
+        <div class="card__body stat-row">
+          <div class="stat-col">
+            <span class="caption">Место</span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+          </div>
+          <div class="stat-col">
+            <span class="caption">клетки</span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+          </div>
+          <div class="stat-col">
+            <span class="caption">время</span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+          </div>
+          <div class="stat-col">
+            <span class="caption">счет</span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+            <span class= "leaderboard__stat"></span>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <div class="field-wrapper">
+      <table class="field" cellspacing="0" cellpadding="0">
+      </table>
+    </div>
 
-		</div>
-		<div class="plashka">
-			<div class="plashka-content">
-					<img src="img/calendar_icon.png" id="calendar-icon"></img>
-					<span id="date"><b>22 – 25</b> грудня 2018 р.</span>
-					<a href="#" id="action">ЗАМОВИТИ</a>
-			</div>
-		</div>
-	</div>
+    <button href="#end-screen" class="btn btn_bordered show-result modal-trigger hide">Показать итог</button>
 
-	<div class="content">
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-	</div>
-
-  <!--<script src="scripts.js"></script>-->
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>

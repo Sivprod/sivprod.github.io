@@ -1,0 +1,44 @@
+@font-face {
+  font-family: 'icons';
+  src:  url('icons.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icons' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  font-size: 24px !important; 
+  line-height: 24px !important;
+  vertical-align: center !important;
+  vertical-align: middle;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-restart:before {
+  content: "\e904";
+}
+.icon-mark:before {
+  content: "\e902";
+}
+.icon-leaderboard:before {
+  content: "\e903";
+}
+.icon-settings:before {
+  content: "\e900";
+}
+.icon-close:before {
+  content: "\e901";
+}
+.icon-mine:before {
+  content: "\e905";
+}
