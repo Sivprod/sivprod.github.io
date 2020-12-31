@@ -39,7 +39,14 @@ let translateY = 0;
 visibleField.addEventListener('mousedown', pressStart);
 visibleField.addEventListener('touchstart', pressStart);
 function pressStart(e) {
-  if(e.button == 2) return;
+  if(e.button == 2) {
+    let td = e.target.parentNode;
+    let tr = td.parentNode;
+    fieldX = visibleArea.startX + td.cellIndex;
+    fieldY = visibleArea.startY + tr.rowIndex;
+    markCell(fieldX, fieldY);
+    return;
+  };
 
   let pressStartX = e.pageX || e.touches[0].pageX;
   let pressStartY = e.pageY || e.touches[0].pageY;
@@ -81,7 +88,10 @@ function pressStart(e) {
       if (pressEndTime - pressStartTime < shortClickTime) {
         openCell(fieldX, fieldY);
       } 
-      // else markCell(fieldX, fieldY);
+      else {
+        markCell(fieldX, fieldY);
+        window.navigator.vibrate(200);
+      }
     }
     else {
       changeVisibleArea();
@@ -91,12 +101,12 @@ function pressStart(e) {
 }
 
 visibleField.addEventListener("contextmenu", function(e) {
-  let td = e.target.parentNode;
-  let tr = td.parentNode;
-  fieldX = visibleArea.startX + td.cellIndex;
-  fieldY = visibleArea.startY + tr.rowIndex;
+  // let td = e.target.parentNode;
+  // let tr = td.parentNode;
+  // fieldX = visibleArea.startX + td.cellIndex;
+  // fieldY = visibleArea.startY + tr.rowIndex;
 
-  markCell(fieldX, fieldY);
+  // markCell(fieldX, fieldY);
   e.preventDefault();
 });
 
@@ -226,7 +236,6 @@ function createCell(x, y) {
       else field[yy][xx] = {state: 'c', value: 0};
       cells++;
       if (cells % 100 == 0 && mineProbability < maxMineProbability) mineProbability += 0.01;
-      
     }
   }, true);
 }
