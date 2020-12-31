@@ -33,6 +33,8 @@ body {
   line-height: 24px;
   position: fixed;
   overflow: hidden;
+  -webkit-user-select: none;
+  -webkit-touch-callout:none;
   user-select: none;
 }
 
