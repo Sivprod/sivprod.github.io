@@ -216,10 +216,11 @@ function around(x, y, func, includeCenter, radius) {
   }
 }
 
+// Сгенерировать клетку
 function createCell(x, y) {
   around(x, y, function(xx, yy) {
     if (!field[yy][xx]) {
-      console.log('cells: ', cells, '; mineProbability: ', mineProbability);
+      // console.log('cells: ', cells, '; mineProbability: ', mineProbability);
       let isMine = Math.random() < mineProbability;
       if (isMine) field[yy][xx] = {state: 'c', value: 10};
       else field[yy][xx] = {state: 'c', value: 0};
@@ -230,11 +231,12 @@ function createCell(x, y) {
   }, true);
 }
 
+// Открыть клетку
 function openCell(x, y, initial) {
   if (gameIsOn) {
     if (field[y] && field[y][x] && field[y][x].state != 'c') return;
-
-    createCell(x, y);
+    if (time < 10000 && (!field[y] || (field[y] && !field[y][x]))) field[y][x] = {state: 'c', value: 10};
+    else createCell(x, y);
     
     if (field[y][x].value == 10) {
       field[y][x].state = 'm';
@@ -265,6 +267,7 @@ function openCell(x, y, initial) {
   } 
 }
 
+// Пометить клетку
 function markCell(x, y) {
   if(!gameIsOn) return;
   createCell(x, y);
@@ -276,15 +279,18 @@ function markCell(x, y) {
   displayCell(x, y);
 }
 
+// Подсчет птс
 function countPTS() {
   return Math.floor(openedCells * (openedCells / 100) * (openedCells / (1 + Math.floor(time / 1000))));
 }
 
+// Секундомер
 function displayTime() {
   if (gameIsOn) time = new Date() - startDate;
   timeCounter.textContent = timeToString(time);
 }
 
+// Начать игру
 function start() {
   gameIsOn = true;
   welcome.classList.add("hide");
@@ -316,50 +322,53 @@ function start() {
   }, 100);
 }
 
+// Закончить игру
 function finish() {
   gameIsOn = false;
   clearInterval(timeInterval);
   let pts = countPTS();
   let place;
-  let result;
-  let resultsUpdated = false;
 
+  // Вычисляем позицию в топе
   if (results.length > 0) {
-    for (i = 0; i < results.length; i++) {
-      if (results[i].pts < pts) {
-        resultsUpdated = true;
+    for (i = 0; i < 8; i++) {
+      if (results[i]) {
+        if (results[i].pts < pts) {
+          place = i + 1;
+          break;
+        }
+      }
+      else {
         place = i + 1;
-        result = {place, openedCells, time, pts};
-        results.splice(i, 0, result);
-        if (results.length > 8) results.splice(-1, 1);
         break;
       }
     }
   }
   else {
-    resultsUpdated = true;
     place = 1;
-    result = {place, openedCells, time, pts};
-    results.push(result);
   }
 
-  if (resultsUpdated) {
+  // Если заняли топ
+  if (place) {
+    results.splice(place - 1, 0, {place, openedCells, time, pts});
+    if (results.length > 8) results.splice(-1, 1);
     results.forEach((result, i) => {
       result.place = i + 1;
     });
     localStorage.setItem("results", JSON.stringify(results));
     updateLeaderboard();
+    endScreen.place.textContent = place + "-е место!";
   }
 
-  if (place) endScreen.place.textContent = place + "-е место!";
   endScreen.totalCells.textContent = numToString(openedCells, 4);
   endScreen.totalTime.textContent = timeToString(time);
   endScreen.pts.textContent = numToString(pts, 6);
   setTimeout(() => { showModal(endScreen) }, 500);
 }
 
-/* Счетчики */
+/* Перевод значений в строку */
 
+// Добавляем нули к num до нужного количества digits
 function numToString(num, digits) {
   if (num >= Math.pow(10, digits)) return "9".repeat(digits);
   let string = '' + num;
@@ -367,6 +376,7 @@ function numToString(num, digits) {
   return string;
 }
 
+// Превращаем ms в формат мм:сс.мс или чч:мм:сс
 function timeToString(time) {
   let string;
   let s = Math.floor(time / 1000) % 60;
@@ -426,9 +436,11 @@ function updateLeaderboard() {
 
 const modals = document.querySelectorAll(".modal");
 modals.forEach(modal => {
+  // Закрывашка
   modal.close = modal.querySelector(".modal__close");
   if (modal.close) modal.close.addEventListener("click", hideModal);
 
+  // Клик вне карточки
   modal.card = modal.querySelector(".card")
   modal.addEventListener("click", function(e) {
     if (!modal.card.contains(e.target)) hideModal();
