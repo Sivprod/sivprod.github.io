@@ -88,10 +88,7 @@ function pressStart(e) {
       if (pressEndTime - pressStartTime < shortClickTime) {
         openCell(fieldX, fieldY);
       } 
-      else {
-        markCell(fieldX, fieldY);
-        window.navigator.vibrate(200);
-      }
+      else markCell(fieldX, fieldY);
     }
     else {
       changeVisibleArea();
