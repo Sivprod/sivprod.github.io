@@ -1,7 +1,7 @@
 /* Конфиг */
 
 const minMineProbability = 0.15;
-const maxMineProbability = 0.3;
+const maxMineProbability = 0.25;
 const shortClickTime = 300;
 const cellSize = 32;
 const deadZone = 5;
@@ -12,7 +12,7 @@ const visibleField = document.querySelector(".field");
 const cellCounter = document.querySelector("#cell-counter");
 const timeCounter = document.querySelector("#time-counter");
 const restartButton = document.querySelector(".btn.icon-restart");
-const welcome = document.querySelector(".welcome");
+const welcome = document.querySelector(".welcome-wrapper");
 const startButton = document.querySelector(".btn.start");
 const showResultButton = document.querySelector(".show-result");
 
@@ -466,9 +466,11 @@ if (modalTriggers.length > 0) {
 let activeModal;
 
 function showModal(modal) {
-  hideModal(activeModal);
-  activeModal = modal;
-  modal.classList.remove("hide");
+  if(modal) {
+    hideModal(activeModal);
+    activeModal = modal;
+    modal.classList.remove("hide");
+  }
 }
 
 function hideModal() {
