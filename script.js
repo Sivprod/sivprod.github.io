@@ -4,7 +4,7 @@ const minMineProbability = 0.15;
 const maxMineProbability = 0.25;
 const shortClickTime = 300;
 const cellSize = 32;
-const deadZone = 5;
+const deadZone = 10;
 
 /* Инициализация */
 
