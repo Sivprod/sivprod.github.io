@@ -1,4 +1,4 @@
-/* Конфиг */
+// КОНФИГ
 
 const minMineProbability = 0.15;
 const maxMineProbability = 0.25;
@@ -6,7 +6,9 @@ const shortClickTime = 300;
 const cellSize = 32;
 const deadZone = 10;
 
-/* Инициализация */
+
+
+// ИНИЦИАЛИЗАЦИЯ
 
 const visibleField = document.querySelector(".field");
 const cellCounter = document.querySelector("#cell-counter");
@@ -30,12 +32,185 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let results = JSON.parse(localStorage.getItem('results')) || [];
 
-/* Обработка ввода */
+
+
+// ГЕЙМПЛЕЙ
+
+// инициализация
+let gameIsOn = false, field, mineProbability;
+let cells, openedCells = 0;
+let time = 0, timeInterval;
+
+// начать игру
+function start() {
+  gameIsOn = true;
+  welcome.classList.add("hide");
+  showResultButton.classList.add("hide");
+  endScreen.place.textContent = "";
+  hideModal();
+  
+  visibleArea.startX = 0;
+  visibleArea.startY = 0;
+
+  openedCells = 0;
+  cells = 0;
+  cellCounter.textContent = numToString(openedCells, 4);
+  time = 0;
+  pts = 0;
+
+  mineProbability = minMineProbability;
+  field = [];
+  displayField();
+
+  around(Math.floor(visibleArea.sizeX / 2), Math.floor(visibleArea.sizeY / 2), function(xx, yy) {
+    field[yy][xx] = {state: 'c', value: 0};
+  }, true, 2);
+
+  openCell(Math.floor(visibleArea.sizeX / 2), Math.floor(visibleArea.sizeY / 2), true);
+  setTimeout(() => {
+    timeInterval = setInterval(displayTime, 10);
+  }, 100);
+}
+
+// закончить игру
+function finish() {
+  gameIsOn = false;
+  clearInterval(timeInterval);
+  let pts = countPTS();
+  let place;
+
+  // вычислить позицию в топе
+  if (results.length > 0) {
+    for (i = 0; i < 8; i++) {
+      if (results[i]) {
+        if (results[i].pts < pts) {
+          place = i + 1;
+          break;
+        }
+      }
+      else {
+        place = i + 1;
+        break;
+      }
+    }
+  }
+  else {
+    place = 1;
+  }
+
+  // если заняли топ
+  if (place) {
+    results.splice(place - 1, 0, {place, openedCells, time, pts});
+    if (results.length > 8) results.splice(-1, 1);
+    results.forEach((result, i) => {
+      result.place = i + 1;
+    });
+    localStorage.setItem("results", JSON.stringify(results));
+    updateLeaderboard();
+    endScreen.place.textContent = place + "-е место!";
+  }
+
+  endScreen.totalCells.textContent = numToString(openedCells, 4);
+  endScreen.totalTime.textContent = timeToString(time);
+  endScreen.pts.textContent = numToString(pts, 6);
+  setTimeout(() => { showModal(endScreen) }, 500);
+}
+
+// выполнить func для области вокруг x, y с радиусом radius. includeCenter: true — включая x, y.
+function around(x, y, func, includeCenter, radius) {
+  let range = radius ? radius : 1;
+  for (let i = -range; i <= range; i++) {
+    if (!field[y + i]) field[y + i] = [];
+    for (let j = -range; j <= range; j++) {
+      if (!includeCenter && i == 0 && j == 0) continue;
+      func(x + j, y + i);
+    }
+  }
+}
+
+// сгенерировать клетку
+function createCell(x, y) {
+  around(x, y, function(xx, yy) {
+    if (!field[yy][xx]) {
+      // console.log('cells: ', cells, '; mineProbability: ', mineProbability);
+      let isMine = Math.random() < mineProbability;
+      if (isMine) field[yy][xx] = {state: 'c', value: 10};
+      else field[yy][xx] = {state: 'c', value: 0};
+      cells++;
+      if (cells % 100 == 0 && mineProbability < maxMineProbability) mineProbability += 0.01;
+    }
+  }, true);
+}
+
+// открыть клетку
+function openCell(x, y, initial) {
+  if (gameIsOn) {
+    if (field[y] && field[y][x] && field[y][x].state != 'c') return;
+    if (time < 10000 && (!field[y] || (field[y] && !field[y][x]))) field[y][x] = {state: 'c', value: 10};
+    else createCell(x, y);
+    
+    if (field[y][x].value == 10) {
+      field[y][x].state = 'm';
+      finish();
+    }
+    else {
+      field[y][x].state = 'o';
+      if (!initial) {
+        openedCells++;
+        cellCounter.textContent = numToString(openedCells, 4);
+      }
+
+      around(x, y, function(xx, yy) {
+        if (field[yy][xx].value == 10) field[y][x].value++;
+      });
+      
+      if (field[y][x].value == 0) {
+        setTimeout(function(){
+          around(x, y, function(xx, yy) {
+            if (initial) openCell(xx, yy, initial);
+            else openCell(xx, yy);
+          });
+        }, 10);
+      }
+    }
+
+    displayCell(x, y);
+  } 
+}
+
+// пометить клетку
+function markCell(x, y) {
+  if(!gameIsOn) return;
+  createCell(x, y);
+
+  if (field[y][x].state == 'o') return;
+  if (field[y][x].state == 'c') field[y][x].state = 'f';
+  else if (field[y][x].state == 'f') field[y][x].state = 'c';
+
+  displayCell(x, y);
+}
+
+// подсчет птс
+function countPTS() {
+  return Math.floor(openedCells * (openedCells / 100) * (openedCells / (1 + Math.floor(time / 1000))));
+}
+
+// секундомер
+function displayTime() {
+  if (gameIsOn && !document.hidden) time += 10;
+  timeCounter.textContent = timeToString(time);
+}
+
+
+
+// ИНТЕРФЕЙС ГЕЙМПЛЕЯ
+
+// Обработка ввода
 
 let translateX = 0;
 let translateY = 0;
 
-// Нажатие
+// нажатие
 visibleField.addEventListener('mousedown', pressStart);
 visibleField.addEventListener('touchstart', pressStart);
 function pressStart(e) {
@@ -54,7 +229,7 @@ function pressStart(e) {
   let startTranslateX = pressStartX - translateX;
   let startTranslateY = pressStartY - translateY;
 
-  //Таскаем поле
+  //перетаскивание поля
   visibleField.addEventListener('mousemove', pressMove);
   visibleField.addEventListener('touchmove', pressMove);
   function pressMove(e) { 
@@ -65,7 +240,7 @@ function pressStart(e) {
     visibleField.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
   }
 
-  // Отпустило
+  // отпустило
   visibleField.addEventListener('mouseup', pressEnd);
   visibleField.addEventListener('touchend', pressEnd);
   function pressEnd(e){
@@ -88,7 +263,10 @@ function pressStart(e) {
       if (pressEndTime - pressStartTime < shortClickTime) {
         openCell(fieldX, fieldY);
       } 
-      else markCell(fieldX, fieldY);
+      else {
+        markCell(fieldX, fieldY);
+        markAnimation(fieldX, fieldY);
+      } 
     }
     else {
       changeVisibleArea();
@@ -97,6 +275,8 @@ function pressStart(e) {
   }
 }
 
+
+// контекстное меню
 visibleField.addEventListener("contextmenu", function(e) {
   // let td = e.target.parentNode;
   // let tr = td.parentNode;
@@ -107,10 +287,12 @@ visibleField.addEventListener("contextmenu", function(e) {
   e.preventDefault();
 });
 
+// выключить дефолтный драг-дроп
 visibleField.ondragstart = function() {return false};
 
-/* Видимое поле */
+// Видимое поле
 
+// инициализация
 visibleField.array = [];
 const visibleArea = {
   startX: 0,
@@ -119,7 +301,7 @@ const visibleArea = {
   sizeY: 0,
 }
 
-// Cоздаем видимое поле
+// создать видимое поле
 function createVisibleField() {
   visibleArea.sizeX = Math.ceil(window.innerWidth / cellSize ) * 3;
   visibleArea.sizeY = Math.ceil(window.innerHeight / cellSize ) * 3;
@@ -141,7 +323,7 @@ function createVisibleField() {
   startButton.classList.remove('hide');
 }
 
-// Обновление зоны видимого поля
+// обновить область видимого поля
 function changeVisibleArea() {
   let visibleAreaShiftX = translateX < 0 ? Math.floor(-translateX / cellSize) : Math.ceil(-translateX / cellSize);
   let visibleAreaShiftY = translateY < 0 ? Math.floor(-translateY / cellSize) : Math.ceil(-translateY / cellSize);
@@ -152,7 +334,7 @@ function changeVisibleArea() {
   visibleField.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`;
 }
 
-// Отображение поля
+// отобразить поле
 function displayField() {
   for (let y = visibleArea.startY; y < visibleArea.startY + visibleArea.sizeY; y++) {
     for (let x = visibleArea.startX; x < visibleArea.startX + visibleArea.sizeX; x++) {
@@ -161,7 +343,7 @@ function displayField() {
   }
 }
 
-// Отображение клетки
+// отобразить клетку
 function displayCell(x, y) {
   let tr = visibleField.rows[y - visibleArea.startY];
   if (!tr) return;
@@ -205,176 +387,19 @@ function displayCell(x, y) {
   }
 }
 
-/* Геймплей */
-
-let gameIsOn = false, field, mineProbability;
-let cells, openedCells = 0;
-let startDate, time = 0, timeInterval;
-
-//Выполнить func для области вокруг x, y с радиусом radius. includeCenter: true — включая x, y.
-function around(x, y, func, includeCenter, radius) {
-  let range = radius ? radius : 1;
-  for (let i = -range; i <= range; i++) {
-    if (!field[y + i]) field[y + i] = [];
-    for (let j = -range; j <= range; j++) {
-      if (!includeCenter && i == 0 && j == 0) continue;
-      func(x + j, y + i);
-    }
-  }
+function markAnimation(x, y) {
+  let tr = visibleField.rows[y - visibleArea.startY];
+  if (!tr) return;
+  let td = tr.cells[x - visibleArea.startX];
+  if (!td) return;
+  let cell = td.childNodes[0];
+  cell.classList.add('mark-animation');
+  setTimeout(() => cell.classList.remove('mark-animation'), 200);
 }
 
-// Сгенерировать клетку
-function createCell(x, y) {
-  around(x, y, function(xx, yy) {
-    if (!field[yy][xx]) {
-      // console.log('cells: ', cells, '; mineProbability: ', mineProbability);
-      let isMine = Math.random() < mineProbability;
-      if (isMine) field[yy][xx] = {state: 'c', value: 10};
-      else field[yy][xx] = {state: 'c', value: 0};
-      cells++;
-      if (cells % 100 == 0 && mineProbability < maxMineProbability) mineProbability += 0.01;
-    }
-  }, true);
-}
+// Перевод значений в строку
 
-// Открыть клетку
-function openCell(x, y, initial) {
-  if (gameIsOn) {
-    if (field[y] && field[y][x] && field[y][x].state != 'c') return;
-    if (time < 10000 && (!field[y] || (field[y] && !field[y][x]))) field[y][x] = {state: 'c', value: 10};
-    else createCell(x, y);
-    
-    if (field[y][x].value == 10) {
-      field[y][x].state = 'm';
-      finish();
-    }
-    else {
-      field[y][x].state = 'o';
-      if (!initial) {
-        openedCells++;
-        cellCounter.textContent = numToString(openedCells, 4);
-      }
-
-      around(x, y, function(xx, yy) {
-        if (field[yy][xx].value == 10) field[y][x].value++;
-      });
-      
-      if (field[y][x].value == 0) {
-        setTimeout(function(){
-          around(x, y, function(xx, yy) {
-            if (initial) openCell(xx, yy, initial);
-            else openCell(xx, yy);
-          });
-        }, 10);
-      }
-    }
-
-    displayCell(x, y);
-  } 
-}
-
-// Пометить клетку
-function markCell(x, y) {
-  if(!gameIsOn) return;
-  createCell(x, y);
-
-  if (field[y][x].state == 'o') return;
-  if (field[y][x].state == 'c') field[y][x].state = 'f';
-  else if (field[y][x].state == 'f') field[y][x].state = 'c';
-
-  displayCell(x, y);
-}
-
-// Подсчет птс
-function countPTS() {
-  return Math.floor(openedCells * (openedCells / 100) * (openedCells / (1 + Math.floor(time / 1000))));
-}
-
-// Секундомер
-function displayTime() {
-  if (gameIsOn) time = new Date() - startDate;
-  timeCounter.textContent = timeToString(time);
-}
-
-// Начать игру
-function start() {
-  gameIsOn = true;
-  welcome.classList.add("hide");
-  showResultButton.classList.add("hide");
-  endScreen.place.textContent = "";
-  hideModal();
-  
-  visibleArea.startX = 0;
-  visibleArea.startY = 0;
-
-  openedCells = 0;
-  cells = 0;
-  cellCounter.textContent = numToString(openedCells, 4);
-  startDate = new Date();
-  time = 0;
-  pts = 0;
-
-  mineProbability = minMineProbability;
-  field = [];
-  displayField();
-
-  around(Math.floor(visibleArea.sizeX / 2), Math.floor(visibleArea.sizeY / 2), function(xx, yy) {
-    field[yy][xx] = {state: 'c', value: 0};
-  }, true, 2);
-
-  openCell(Math.floor(visibleArea.sizeX / 2), Math.floor(visibleArea.sizeY / 2), true);
-  setTimeout(() => {
-    timeInterval = setInterval(displayTime, 10);
-  }, 100);
-}
-
-// Закончить игру
-function finish() {
-  gameIsOn = false;
-  clearInterval(timeInterval);
-  let pts = countPTS();
-  let place;
-
-  // Вычисляем позицию в топе
-  if (results.length > 0) {
-    for (i = 0; i < 8; i++) {
-      if (results[i]) {
-        if (results[i].pts < pts) {
-          place = i + 1;
-          break;
-        }
-      }
-      else {
-        place = i + 1;
-        break;
-      }
-    }
-  }
-  else {
-    place = 1;
-  }
-
-  // Если заняли топ
-  if (place) {
-    results.splice(place - 1, 0, {place, openedCells, time, pts});
-    if (results.length > 8) results.splice(-1, 1);
-    results.forEach((result, i) => {
-      result.place = i + 1;
-    });
-    localStorage.setItem("results", JSON.stringify(results));
-    updateLeaderboard();
-    endScreen.place.textContent = place + "-е место!";
-  }
-
-  endScreen.totalCells.textContent = numToString(openedCells, 4);
-  endScreen.totalTime.textContent = timeToString(time);
-  endScreen.pts.textContent = numToString(pts, 6);
-  setTimeout(() => { showModal(endScreen) }, 500);
-}
-
-/* Перевод значений в строку */
-
-// Добавляем нули к num до нужного количества digits
+// добавить нули к num до нужного количества digits
 function numToString(num, digits) {
   if (num >= Math.pow(10, digits)) return "9".repeat(digits);
   let string = '' + num;
@@ -382,7 +407,7 @@ function numToString(num, digits) {
   return string;
 }
 
-// Превращаем ms в формат мм:сс.мс или чч:мм:сс
+// превратить ms в формат мм:сс.мс или чч:мм:сс
 function timeToString(time) {
   let string;
   let s = Math.floor(time / 1000) % 60;
@@ -411,7 +436,7 @@ function placeToString(place) {
   return place + '-e';
 }
 
-/* Конечный экран */
+// Конечный экран
 
 const endScreen = document.querySelector(".end-screen");
 endScreen.totalCells = endScreen.querySelector("#total-cells");
@@ -421,7 +446,7 @@ endScreen.restartButton = endScreen.querySelector(".end-screen__restart");
 endScreen.restartButton.addEventListener('click', start);
 endScreen.place = endScreen.querySelector(".endscreen__place");
 
-/* Рекорды */
+// Рекорды
 
 const leaderboard = document.querySelector(".leaderboard");
 leaderboard.statCols = leaderboard.querySelectorAll(".stat-col");
@@ -438,21 +463,36 @@ function updateLeaderboard() {
   });
 }
 
-/* Модалки */
+// Пауза
 
+let pause = false;
+document.addEventListener('visibilitychange', handleVisibilityChange);
+function handleVisibilityChange() {
+  if (document.hidden) pause = true;
+  else pause = false;
+}
+
+
+
+// ИНТЕРФЕЙС ПЕРИФЕРИЯ
+
+// Модалки
+
+// инициализация модалок
 const modals = document.querySelectorAll(".modal");
+let activeModal;
+
 modals.forEach(modal => {
-  // Закрывашка
   modal.close = modal.querySelector(".modal__close");
   if (modal.close) modal.close.addEventListener("click", hideModal);
 
-  // Клик вне карточки
   modal.card = modal.querySelector(".card")
   modal.addEventListener("click", function(e) {
     if (!modal.card.contains(e.target)) hideModal();
   });
 });
 
+// инициализация триггеров открытия модалок
 const modalTriggers = document.querySelectorAll(".modal-trigger");
 if (modalTriggers.length > 0) {
   modalTriggers.forEach(modalTrigger => {
@@ -463,8 +503,7 @@ if (modalTriggers.length > 0) {
   });
 }
 
-let activeModal;
-
+// показать modal
 function showModal(modal) {
   if(modal) {
     hideModal(activeModal);
@@ -473,6 +512,7 @@ function showModal(modal) {
   }
 }
 
+// скрыть активную модалку
 function hideModal() {
   if(activeModal) {
     if (activeModal == endScreen && !gameIsOn) showResultButton.classList.remove("hide");
